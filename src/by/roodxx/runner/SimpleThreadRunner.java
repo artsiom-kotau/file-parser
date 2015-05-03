@@ -12,20 +12,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import static by.roodxx.helper.Consts.*;
-public class ExecutorRunner {
 
+import static by.roodxx.helper.Consts.*;
+
+public class SimpleThreadRunner {
     public static void main(String[] args) {
-        Map<String,Long> extensionSizeMap = createExtensionSizeMap();
+        Map<String, Long> extensionSizeMap = createExtensionSizeMap();
         FileFilter fileFilter = new MultiFileFilter(extensionSizeMap);
         Queue<File> directoryQueue = new ConcurrentLinkedQueue<>();
         Controller<File> directoryQueueController = new QueueController<>(directoryQueue);
         directoryQueueController.add(new File(ROOT));
         AtomicInteger threadCounter = new AtomicInteger(1);
-        ExecutorService executorService = Executors.newCachedThreadPool();
         for (String extension : extensionSizeMap.keySet()) {
             new File(COPY_ROOT + extension).mkdir();
         }
@@ -34,17 +32,12 @@ public class ExecutorRunner {
             File targetFile = directoryQueue.poll();
             if (targetFile != null) {
                 threadCounter.incrementAndGet();
-                executorService.execute(new FileParserThread(directoryQueueController,fileFilter, targetFile, threadCounter));
+                Thread thread = new Thread(new FileParserThread(directoryQueueController, fileFilter, targetFile, threadCounter));
+                thread.start();
             }
             threadCounter.compareAndSet(1, 0);
         }
         System.out.println("Finish time: " + new Date().getTime());
-        executorService.shutdown();
-        System.out.println("Shutting down executor service...");
-        while (!executorService.isShutdown()) {
-
-        }
-        System.out.println("Executor service was shut down");
     }
 
     public static Map<String, Long> createExtensionSizeMap() {
@@ -70,11 +63,11 @@ public class ExecutorRunner {
 
         @Override
         public void run() {
-            System.out.println("Start process directory: "+targetDirectory.getName() + "; process amount: "+threadCounter.get());
+            //System.out.println("Start process directory: " + targetDirectory.getName() + "; process amount: " + threadCounter.get());
             for (File file : targetDirectory.listFiles()) {
                 if (file.isDirectory()) {
                     directoryController.add(file);
-                } else if (fileFilter.accept(file)){
+                } else if (fileFilter.accept(file)) {
                     try {
                         String name = file.getName();
                         String extension = FileHelper.getFileExtension(name);
@@ -82,10 +75,10 @@ public class ExecutorRunner {
                     } catch (Exception exc) {
                         exc.printStackTrace();
                     }
-
                 }
             }
-            System.out.println("Finish process directory: "+targetDirectory.getName() + "; process amount: "+threadCounter.decrementAndGet());
+            threadCounter.decrementAndGet();
+            //System.out.println("Finish process directory: " + targetDirectory.getName() + "; process amount: " + threadCounter.decrementAndGet());
         }
     }
 
@@ -106,3 +99,4 @@ public class ExecutorRunner {
         }
     }
 }
+
