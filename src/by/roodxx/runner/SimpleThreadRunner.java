@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static by.roodxx.helper.Consts.*;
+//third start 14.206933333333334
 
 public class SimpleThreadRunner {
     public static void main(String[] args) {
@@ -27,7 +28,7 @@ public class SimpleThreadRunner {
         for (String extension : extensionSizeMap.keySet()) {
             new File(COPY_ROOT + extension).mkdir();
         }
-        System.out.println("Start time: " + new Date().getTime());
+        long startTime = new Date().getTime();
         while (threadCounter.get() > 0) {
             File targetFile = directoryQueue.poll();
             if (targetFile != null) {
@@ -37,7 +38,7 @@ public class SimpleThreadRunner {
             }
             threadCounter.compareAndSet(1, 0);
         }
-        System.out.println("Finish time: " + new Date().getTime());
+        System.out.println("All time: " + ((new Date().getTime()-startTime)/1000.0)/60.0);
     }
 
     public static Map<String, Long> createExtensionSizeMap() {
@@ -63,7 +64,6 @@ public class SimpleThreadRunner {
 
         @Override
         public void run() {
-            //System.out.println("Start process directory: " + targetDirectory.getName() + "; process amount: " + threadCounter.get());
             for (File file : targetDirectory.listFiles()) {
                 if (file.isDirectory()) {
                     directoryController.add(file);
@@ -78,7 +78,6 @@ public class SimpleThreadRunner {
                 }
             }
             threadCounter.decrementAndGet();
-            //System.out.println("Finish process directory: " + targetDirectory.getName() + "; process amount: " + threadCounter.decrementAndGet());
         }
     }
 

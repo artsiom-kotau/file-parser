@@ -1,56 +1,49 @@
 package by.roodxx.runner;
 
+import by.roodxx.comparator.MultiFileFilter;
+import by.roodxx.helper.FileHelper;
+
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import static by.roodxx.helper.Consts.*;
+// first start 11.8021
 public class LinearExecutionRunner {
 
-    public static final List<String> PERMITTED_EXTENSIONS = Arrays.asList("jpg", "doc", "mp3");
-    public static final long MIN_SIZE = 716800;
-
     public static void main(String[] args) throws IOException {
-        String root = "f:\\recover_test\\source";
-        String copyRoot = "f:\\recover_test\\work_directory\\";
+        Map<String, Long> extensionSizeMap = createExtensionSizeMap();
+        FileFilter fileFilter = new MultiFileFilter(extensionSizeMap);
         Queue<File> directories = new LinkedBlockingQueue<>();
-        directories.add(new File(root));
-        for (String extension : PERMITTED_EXTENSIONS) {
-            new File(copyRoot + extension).mkdir();
+        directories.add(new File(ROOT));
+        for (String extension : extensionSizeMap.keySet()) {
+            new File(COPY_ROOT + extension).mkdir();
         }
-        System.out.println("Start time: " + new Date().getTime());
+        long startTime = new Date().getTime();
         while (!directories.isEmpty()) {
             File targetDirectory = directories.poll();
             for (File file : targetDirectory.listFiles()) {
                 if (file.isDirectory()) {
                     directories.add(file);
-                } else if (isFileSuit(file)) {
+                } else if (fileFilter.accept(file)) {
                     String name = file.getName();
-                    String extension = getFileExtension(name);
-                    Files.copy(file.toPath(), new File(copyRoot + "\\" + extension + "\\" + name).toPath(), StandardCopyOption.COPY_ATTRIBUTES);
+                    String extension = FileHelper.getFileExtension(name);
+                    Files.copy(file.toPath(), new File(COPY_ROOT + "\\" + extension + "\\" + name).toPath(), StandardCopyOption.COPY_ATTRIBUTES);
                 }
             }
         }
-        System.out.println("Finish time: " + new Date().getTime());
+        System.out.println("All time: " + ((new Date().getTime()-startTime)/1000.0)/60.0);
     }
 
-    public static boolean isFileSuit(File file) {
-        String extension = getFileExtension(file.getName());
-        long size = file.length();
-        return size >= MIN_SIZE && PERMITTED_EXTENSIONS.contains(extension);
-    }
-
-    public static String getFileExtension(String fileName) {
-        String extension = null;
-        int pointIndex = fileName.lastIndexOf(".");
-        if (pointIndex > -1) {
-            extension = fileName.substring(pointIndex + 1);
-        }
-        return extension;
+    public static Map<String, Long> createExtensionSizeMap() {
+        Map<String, Long> extensionSize = new HashMap<>();
+        extensionSize.put("jpg", JPG_SIZE);
+        extensionSize.put("doc", DOC_SIZE);
+        extensionSize.put("mp3", MP3_SIZE);
+        return extensionSize;
     }
 }

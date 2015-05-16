@@ -16,6 +16,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import static by.roodxx.helper.Consts.*;
+// second start 15.271283333333335
+
 public class ExecutorRunner {
 
     public static void main(String[] args) {
@@ -29,7 +31,7 @@ public class ExecutorRunner {
         for (String extension : extensionSizeMap.keySet()) {
             new File(COPY_ROOT + extension).mkdir();
         }
-        System.out.println("Start time: " + new Date().getTime());
+        long startTime = new Date().getTime();
         while (threadCounter.get() > 0) {
             File targetFile = directoryQueue.poll();
             if (targetFile != null) {
@@ -38,7 +40,7 @@ public class ExecutorRunner {
             }
             threadCounter.compareAndSet(1, 0);
         }
-        System.out.println("Finish time: " + new Date().getTime());
+        System.out.println("All time: " + ((new Date().getTime()-startTime)/1000.0)/60.0);
         executorService.shutdown();
         System.out.println("Shutting down executor service...");
         while (!executorService.isShutdown()) {
@@ -70,7 +72,6 @@ public class ExecutorRunner {
 
         @Override
         public void run() {
-            System.out.println("Start process directory: "+targetDirectory.getName() + "; process amount: "+threadCounter.get());
             for (File file : targetDirectory.listFiles()) {
                 if (file.isDirectory()) {
                     directoryController.add(file);
@@ -85,7 +86,7 @@ public class ExecutorRunner {
 
                 }
             }
-            System.out.println("Finish process directory: "+targetDirectory.getName() + "; process amount: "+threadCounter.decrementAndGet());
+            threadCounter.decrementAndGet();
         }
     }
 
