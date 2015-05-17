@@ -1,6 +1,7 @@
 package by.roodxx.runner;
 
 import by.roodxx.comparator.MultiFileFilter;
+import by.roodxx.helper.Consts;
 import by.roodxx.helper.FileHelper;
 
 import java.io.File;
@@ -13,10 +14,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import static by.roodxx.helper.Consts.*;
 // first start 11.8021
+//second start 11.01595
 public class LinearExecutionRunner {
 
     public static void main(String[] args) throws IOException {
-        Map<String, Long> extensionSizeMap = createExtensionSizeMap();
+        Map<String, Long> extensionSizeMap = Consts.extensionSizeMap;
         FileFilter fileFilter = new MultiFileFilter(extensionSizeMap);
         Queue<File> directories = new LinkedBlockingQueue<>();
         directories.add(new File(ROOT));
@@ -37,13 +39,5 @@ public class LinearExecutionRunner {
             }
         }
         System.out.println("All time: " + ((new Date().getTime()-startTime)/1000.0)/60.0);
-    }
-
-    public static Map<String, Long> createExtensionSizeMap() {
-        Map<String, Long> extensionSize = new HashMap<>();
-        extensionSize.put("jpg", JPG_SIZE);
-        extensionSize.put("doc", DOC_SIZE);
-        extensionSize.put("mp3", MP3_SIZE);
-        return extensionSize;
     }
 }

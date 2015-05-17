@@ -5,34 +5,31 @@ import by.roodxx.api.FileParserThread;
 import by.roodxx.api.QueueController;
 import by.roodxx.comparator.MultiFileFilter;
 import by.roodxx.helper.Consts;
-import by.roodxx.helper.FileHelper;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import static by.roodxx.helper.Consts.*;
-// second start 15.271283333333335
-//third start 13.478433333333333
 
-public class ExecutorRunner {
+import static by.roodxx.helper.Consts.COPY_ROOT;
+import static by.roodxx.helper.Consts.ROOT;
 
+public class FixedPoolRunner {
     public static void main(String[] args) {
+        int nThread = Runtime.getRuntime().availableProcessors()+1;
         Map<String,Long> extensionSizeMap = Consts.extensionSizeMap;
         FileFilter fileFilter = new MultiFileFilter(extensionSizeMap);
         Queue<File> directoryQueue = new ConcurrentLinkedQueue<>();
         Controller<File> directoryQueueController = new QueueController<>(directoryQueue);
         directoryQueueController.add(new File(ROOT));
         AtomicInteger threadCounter = new AtomicInteger(1);
-        ExecutorService executorService = Executors.newCachedThreadPool();
+        ExecutorService executorService = Executors.newFixedThreadPool(nThread);
         for (String extension : extensionSizeMap.keySet()) {
             new File(COPY_ROOT + extension).mkdir();
         }
@@ -52,5 +49,7 @@ public class ExecutorRunner {
 
         }
         System.out.println("Executor service was shut down");
+        assert FileUtils.sizeOfDirectory(new File(Consts.STANDART_ROOT)) ==
+                FileUtils.sizeOfDirectory(new File(Consts.COPY_ROOT));
     }
 }
