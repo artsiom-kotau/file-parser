@@ -41,4 +41,8 @@ public class FileParserThread implements Runnable {
         }
         threadCounter.decrementAndGet();
     }
+
+    public File getTargetDirectory() {
+        return targetDirectory;
+    }
 }
